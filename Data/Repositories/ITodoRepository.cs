@@ -12,5 +12,7 @@ namespace BlazorTodoList.Data.Repositories
         void Update(TodoItem item);
 
         void Delete(int id);
+
+        void DeleteAll();
     }
 }

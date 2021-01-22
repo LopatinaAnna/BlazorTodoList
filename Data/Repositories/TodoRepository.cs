@@ -39,6 +39,13 @@ namespace BlazorTodoList.Data.Repositories
             }
         }
 
+        public void DeleteAll()
+        {
+            var items = _context.TodoItems;
+            _context.TodoItems.RemoveRange(items);
+            _context.SaveChanges();
+        }
+
         public void Update(TodoItem item)
         {
             var updateItem = _context.TodoItems.Attach(item);

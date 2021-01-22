@@ -1,5 +1,6 @@
 ﻿@page "/"
-@inject BlazorTodoList.Data.Repositories.ITodoRepository repository
+@inject ITodoRepository repository
+@inject IJSRuntime jsRuntime
 
 <div class="container-fluid">
     <h1>Todo list</h1>
@@ -7,7 +8,7 @@
         <div class="col">
             <div class="row">
                 <div class="col">
-                    <input class="form-control" placeholder="What do you need to do?" @bind="newItem" />
+                    <input class="form-control" placeholder="What do you need to do?" @bind="newItem" @onkeyup="EnterPressHandler" />
                 </div>
                 <div class="col">
                     <button class="btn btn-primary" @onclick="AddItem">Add</button>
@@ -23,7 +24,9 @@
                             <tr>
                                 <th scope="col">Title</th>
                                 <th scope="col">Is done</th>
-                                <th scope="col"></th>
+                                <th scope="col">
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="(() => RemoveAll())">Clear all</button>
+                                </th>
                             </tr>
                         </thead>
                         @foreach (var item in todos)
@@ -31,7 +34,7 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        <div style="@(item.IsDone ? "color: green; text-decoration: line-through;" : "color: black;")">
+                                        <div class="@(item.IsDone ? "doneTodo" : "notDoneTodo")">
                                             @item.Title
                                         </div>
                                     </td>
@@ -46,7 +49,7 @@
                                         }
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-danger" @onclick="(() => RemoveItem(item.Id))">Remove</button>
+                                        <button class="btn btn-sm btn-outline-secondary" @onclick="(() => RemoveItem(item.Id))">Remove</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -76,14 +79,34 @@
         }
     }
 
-    private void RemoveItem(int id)
+    private async Task RemoveItem(int id)
     {
+        if (!await jsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to remove this?"))
+            return;
+
         repository.Delete(id);
+    }
+
+    private async Task RemoveAll()
+    {
+        if (!await jsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to clear all?"))
+            return;
+
+        repository.DeleteAll();
     }
 
     private void ChangeStatus(TodoItem item)
     {
         item.IsDone = !item.IsDone;
         repository.Update(item);
+    }
+
+    private void EnterPressHandler(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            AddItem();
+        }
+
     }
 }
