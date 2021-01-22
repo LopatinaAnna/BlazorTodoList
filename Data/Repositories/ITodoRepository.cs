@@ -1,18 +1,19 @@
 ﻿using BlazorTodoList.Data.Models;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BlazorTodoList.Data.Repositories
 {
     public interface ITodoRepository
     {
-        IEnumerable<TodoItem> GetAll();
+        Task<IEnumerable<TodoItem>> GetAll();
 
-        void Add(string title);
+        Task Add(string title);
 
-        void Update(TodoItem item);
+        Task Update(TodoItem item);
 
-        void Delete(int id);
+        Task Delete(int id);
 
-        void DeleteAll();
+        Task DeleteAll();
     }
 }

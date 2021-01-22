@@ -18,14 +18,20 @@
 
             @if (todos.Any())
             {
+                <div class="row d-flex justify-content-around">
+                    <button class="btn btn-sm btn-outline-primary" disabled>TOTAL: @todos.Count()</button>
+                    <button class="btn btn-sm btn-outline-success" disabled>DONE: @todos.Count(c => c.IsDone)</button>
+                    <button class="btn btn-sm btn-outline-warning" disabled>IN PROGRESS: @todos.Count(c => !c.IsDone)</button>
+                </div>
+                <br />
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th scope="col">Title</th>
-                                <th scope="col">Is done</th>
-                                <th scope="col">
-                                    <button class="btn btn-sm btn-outline-danger" @onclick="(() => RemoveAll())">Clear all</button>
+                                <th scope="col" style="width:70%">Title</th>
+                                <th scope="col" >Is done</th>
+                                <th scope="col" style="color:red;cursor:pointer">
+                                    <a @onclick="(() => RemoveAll())">Clear all</a>
                                 </th>
                             </tr>
                         </thead>
@@ -33,7 +39,7 @@
                         {
                             <tbody>
                                 <tr>
-                                    <td>
+                                    <td style="width:70%">
                                         <div class="@(item.IsDone ? "doneTodo" : "notDoneTodo")">
                                             @item.Title
                                         </div>
@@ -65,48 +71,50 @@
     private IEnumerable<TodoItem> todos = new List<TodoItem>();
     private string newItem;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        todos = repository.GetAll();
+        todos = await repository.GetAll();
     }
 
-    private void AddItem()
+    private async Task AddItem()
     {
         if (!string.IsNullOrWhiteSpace(newItem))
         {
-            repository.Add(newItem);
+            await repository.Add(newItem);
             newItem = string.Empty;
+            todos = await repository.GetAll();
         }
     }
 
     private async Task RemoveItem(int id)
     {
-        if (!await jsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to remove this?"))
-            return;
-
-        repository.Delete(id);
+        if (await jsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to remove this?"))
+        {
+            await repository.Delete(id);
+            todos = await repository.GetAll();
+        }
     }
 
     private async Task RemoveAll()
     {
-        if (!await jsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to clear all?"))
-            return;
-
-        repository.DeleteAll();
+        if (await jsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to clear all?"))
+        {
+            await repository.DeleteAll();
+            todos = await repository.GetAll();
+        }
     }
 
-    private void ChangeStatus(TodoItem item)
+    private async Task ChangeStatus(TodoItem item)
     {
         item.IsDone = !item.IsDone;
-        repository.Update(item);
+        await repository.Update(item);
     }
 
-    private void EnterPressHandler(KeyboardEventArgs args)
+    private async Task EnterPressHandler(KeyboardEventArgs args)
     {
         if (args.Key == "Enter")
         {
-            AddItem();
+            await AddItem();
         }
-
     }
 }

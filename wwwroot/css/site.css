@@ -49,9 +49,9 @@ a, .btn-link {
     top: 0.5rem;
 }
 
-th,
 input[type=checkbox]{
     cursor: pointer;
+    margin: 5px 20px;
 }
 
 .table td, .table th {
@@ -59,7 +59,7 @@ input[type=checkbox]{
 }
 
 .doneTodo {
-    color: green;
+    color: #26b050;
     text-decoration: line-through;
 }
 

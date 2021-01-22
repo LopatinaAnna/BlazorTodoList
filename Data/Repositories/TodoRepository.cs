@@ -1,5 +1,7 @@
 ﻿using BlazorTodoList.Data.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BlazorTodoList.Data.Repositories
 {
@@ -12,12 +14,12 @@ namespace BlazorTodoList.Data.Repositories
             _context = context;
         }
 
-        public IEnumerable<TodoItem> GetAll()
+        public async Task<IEnumerable<TodoItem>> GetAll()
         {
-            return _context.TodoItems;
+            return await _context.TodoItems.ToListAsync();
         }
 
-        public void Add(string title)
+        public async Task Add(string title)
         {
             var newItem = new TodoItem
             {
@@ -25,33 +27,35 @@ namespace BlazorTodoList.Data.Repositories
                 IsDone = false
             };
 
-            _context.TodoItems.Add(newItem);
-            _context.SaveChanges();
+            await _context.TodoItems.AddAsync(newItem);
+            await _context.SaveChangesAsync();
         }
 
-        public void Delete(int id)
+        public async Task Delete(int id)
         {
-            var deletedItem = _context.TodoItems.Find(id);
+            var deletedItem = await _context.TodoItems.FindAsync(id);
+
             if (deletedItem != null)
             {
                 _context.TodoItems.Remove(deletedItem);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
 
-        public void DeleteAll()
+        public async Task DeleteAll()
         {
-            var items = _context.TodoItems;
+            var items = await GetAll();
             _context.TodoItems.RemoveRange(items);
-            _context.SaveChanges();
+
+            await _context.SaveChangesAsync();
         }
 
-        public void Update(TodoItem item)
+        public async Task Update(TodoItem item)
         {
             var updateItem = _context.TodoItems.Attach(item);
-            updateItem.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            updateItem.State = EntityState.Modified;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }
